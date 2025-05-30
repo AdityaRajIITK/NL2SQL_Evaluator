@@ -197,20 +197,9 @@ Component Breakdown:
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📄 License
-
-This project is based on the Spider evaluation framework and extends it with additional metrics for comprehensive NL2SQL model evaluation.
-
 ## 🙏 Acknowledgments
 
 - Built upon the [Spider](https://yale-lily.github.io/spider) evaluation framework
-- Extends Spider metrics with advanced component-level analysis
-- Includes novel hardness-based performance evaluation
-
-## 📞 Contact
-
-For questions or issues, please open a GitHub issue or contact the repository maintainer.
-
----
+- Extends Spider metrics as it can handle more complex sql queries which have alias and custom column name in output
 
 **Happy Evaluating! 🎯** 
