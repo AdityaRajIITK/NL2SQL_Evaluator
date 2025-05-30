@@ -1,0 +1,34 @@
+[
+  {
+    "question": "Show the number of nodes created per day",
+    "query": "SELECT n.nodename,\n       COUNT(*) AS num_nodes,\n       DATE_TRUNC('day', n.created) AS creation_date\nFROM nodedata n\nGROUP BY n.nodename,\n         DATE_TRUNC('day', n.created)\nORDER BY creation_date NULLS LAST;"
+  },
+  {
+    "question": "How many pods have current state running?",
+    "query": "SELECT COUNT(*)\nFROM poddata pd\nWHERE LOWER(pd.state) = 'running';"
+  },
+  {
+    "question": "How many nodes are there per cluster?",
+    "query": "SELECT n.clustername,\n       COUNT(*) AS node_count\nFROM nodedata n\nGROUP BY n.clustername\nORDER BY n.clustername NULLS LAST;"
+  },
+  {
+    "question": "What are the account id of the products that have category as 'COMPUTE-RI' and subcategory as 'H200-RI' in the month of April 2025?",
+    "query": "SELECT cd.account_id\nFROM costs_data cd\nWHERE cd.category = 'COMPUTE-RI'\n  AND cd.subcategory = 'H200-RI'\n  AND cd.date_day >= '2025-04-01'\n  AND cd.date_day < '2025-05-01';"
+  },
+  {
+    "question": "Show me the clusters that have more than 5 nodes, grouped by platform",
+    "query": "SELECT pd.clustername,\n       COUNT(pd.node_name) AS node_count,\n       pd.platform\nFROM poddata pd\nGROUP BY pd.clustername,\n         pd.platform\nHAVING COUNT(pd.node_name) > 5\nORDER BY pd.clustername,\n         pd.platform NULLS LAST;"
+  },
+  {
+    "question": "From how many projects did the last time we fetched metadata lies in last month",
+    "query": "SELECT COUNT(DISTINCT pd.project_id)\nFROM projectdata pd\nWHERE pd.lastfetched > CURRENT_DATE - INTERVAL '1 month';"
+  },
+  {
+    "question": "What is the distribution of instance types?",
+    "query": "SELECT n.instancetype,\n       COUNT(*) AS COUNT\nFROM nodedata n\nGROUP BY n.instancetype\nORDER BY COUNT DESC NULLS LAST;"
+  },
+  {
+    "question": "What are all the nodes in the 'sensei-eks01-prod-cluster' cluster?",
+    "query": "SELECT DISTINCT n.nodename\nFROM nodedata n\nWHERE n.clustername ='sensei-eks01-prod-cluster';"
+  }
+]

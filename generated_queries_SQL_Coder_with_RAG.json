@@ -1,0 +1,34 @@
+[
+  {
+    "question": "Show the number of nodes created per day",
+    "query": "SELECT n.created::DATE AS creation_date,\n       COUNT(*) AS number_of_nodes\nFROM nodedata n\nGROUP BY creation_date\nORDER BY creation_date NULLS LAST;"
+  },
+  {
+    "question": "How many pods have current state running?",
+    "query": "SELECT COUNT(*)\nFROM poddata p\nWHERE LOWER(p.state) = 'running';"
+  },
+  {
+    "question": "How many nodes are there per cluster?",
+    "query": "SELECT n.clustername,\n       COUNT(*) AS node_count\nFROM nodedata n\nGROUP BY n.clustername\nORDER BY n.clustername NULLS LAST;"
+  },
+  {
+    "question": "What are the account id of the products that have category as 'COMPUTE-RI' and subcategory as 'H200-RI' in the month of April 2025?",
+    "query": "SELECT DISTINCT cd.account_id\nFROM costs_data cd\nWHERE cd.category = 'COMPUTE-RI'\n  AND cd.subcategory = 'H200-RI'\n  AND cd.date_day >= '2025-04-01'\n  AND cd.date_day < '2025-05-01';"
+  },
+  {
+    "question": "Show me the clusters that have more than 5 nodes, grouped by platform",
+    "query": "SELECT n.platform,\n       COUNT(n.nodeid) AS node_count\nFROM nodedata n\nGROUP BY n.platform\nHAVING COUNT(n.nodeid) > 5\nORDER BY n.platform NULLS LAST;"
+  },
+  {
+    "question": "From how many projects did the last time we fetched metadata lies in last month",
+    "query": "SELECT COUNT(DISTINCT pd.projectid)\nFROM projectdata pd\nWHERE pd.lastfetched >= (CURRENT_DATE - INTERVAL '1 month')\n  AND pd.lastfetched < CURRENT_DATE;"
+  },
+  {
+    "question": "What is the distribution of instance types?",
+    "query": "SELECT itm.instance_type,\n       COUNT(*) AS instance_count\nFROM instance_type_metadata itm\nJOIN costs_data cd ON itm.instance_type = cd.instancetype\nGROUP BY itm.instance_type\nORDER BY instance_count DESC NULLS LAST;"
+  },
+  {
+    "question": "What are all the nodes in the 'sensei-eks01-prod-cluster' cluster?",
+    "query": "SELECT n.nodename\nFROM nodedata n\nWHERE n.clustername ='sensei-eks01-prod-cluster';"
+  }
+]
