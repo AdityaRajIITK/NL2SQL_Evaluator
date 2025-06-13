@@ -1,0 +1,242 @@
+[
+    {
+        "question": "Show the number of nodes created per day",
+        "query": "SELECT COUNT(*), DATE(created_at) AS creation_date\nFROM nodedata\nGROUP BY creation_date;"
+    },
+    {
+        "question": "How many pods have current state running?",
+        "query": "SELECT COUNT(*)\nFROM poddata\nWHERE state = 'running';"
+    },
+    {
+        "question": "How many nodes are there per cluster?",
+        "query": "SELECT cluster_name, COUNT(node_id) AS node_count\nFROM nodedata\nGROUP BY cluster_name;"
+    },
+    {
+        "question": "What are the account id of the products that have category as 'COMPUTE-RI' and subcategory as 'H200-RI' in the month of April 2025?",
+        "query": "SELECT account_id\nFROM costs_data\nWHERE category = 'COMPUTE-RI'\nAND subcategory = 'H200-RI'\nAND date_day BETWEEN '2025-04-01' AND '2025-04-30';"
+    },
+    {
+        "question": "Show me the clusters that have more than 5 nodes, grouped by platform",
+        "query": "SELECT cluster_name, platform\nFROM nodedata\nGROUP BY platform\nHAVING COUNT(*) > 5;"
+    },
+    {
+        "question": "From how many projects did the last time we fetched metadata lies in last month",
+        "query": "SELECT COUNT(DISTINCT project_id) AS num_projects\nFROM initiativedata\nWHERE last_fetched_time >= DATE('now', '-1 month');"
+    },
+    {
+        "question": "What is the distribution of instance types?",
+        "query": "SELECT instance_type, COUNT(*) AS instance_count\nFROM instance_type_metadata\nGROUP BY instance_type;"
+    },
+    {
+        "question": "What are all the nodes in the 'sensei-eks01-prod-cluster' cluster?",
+        "query": "SELECT node_name\nFROM nodedata\nWHERE cluster_name = 'sensei-eks01-prod-cluster';"
+    },
+    {
+        "question": "How many pods are currently in the 'Running' state?",
+        "query": "SELECT COUNT(*)\n     FROM poddata\n     WHERE state = 'Running';"
+    },
+    {
+        "question": "List all pods that have terminated in the last 24 hours.",
+        "query": "SELECT name\nFROM poddata\nWHERE is_terminated = True AND strftime('%s', CURRENT_TIMESTAMP) - strftime('%s', end_time) <= 86400;"
+    },
+    {
+        "question": "Which pods have GPU utilization above 80%?",
+        "query": "SELECT DISTINCT m.pod_id\nFROM metrics m\nJOIN poddata p ON m.pod_id = p.pod_id\nWHERE m.dcgm_fi_dev_gpu_util > 80;"
+    },
+    {
+        "question": "Identify pods with memory usage exceeding 90.",
+        "query": "SELECT DISTINCT pod_id\nFROM metrics\nWHERE dcgm_fi_prof_dram_active > 90;"
+    },
+    {
+        "question": "How many pods were initiated by each project?",
+        "query": "SELECT COUNT(pod_id) AS total_pods, project\nFROM poddata\nGROUP BY project;"
+    },
+    {
+        "question": "List pods that have not reported metrics in the last 2 hours.",
+        "query": "SELECT DISTINCT m.pod_id\nFROM metrics m\nWHERE m.last_metric_received_time < datetime('now', '-2 hours');"
+    },
+    {
+        "question": "Which pods have been running for more than 24 hours?",
+        "query": "SELECT pod_id\nFROM poddata\nWHERE start_time < DATETIME(CURRENT_TIMESTAMP, '-24 hours');"
+    },
+    {
+        "question": "What is the distribution of pod states across all clusters?",
+        "query": "SELECT \n  state, \n  COUNT(*) AS state_count, \n  cluster_name\nFROM \n  poddata\nGROUP BY \n  state, \n  cluster_name\nORDER BY \n  cluster_name, \n  state;"
+    },
+    {
+        "question": "Identify pods with the highest GPU count.",
+        "query": "SELECT pod_id\nFROM poddata\nWHERE gpu_count = (SELECT MAX(gpu_count) FROM poddata);"
+    },
+    {
+        "question": "How many nodes exist in each cluster?",
+        "query": "SELECT cluster_name, COUNT(node_id) AS num_nodes\nFROM nodedata\nGROUP BY cluster_name;"
+    },
+    {
+        "question": "List nodes created per day over the last month.",
+        "query": "SELECT DATE(created_at) AS created_date, COUNT(*) AS num_nodes_created\nFROM nodedata\nWHERE created_at >= DATE('now', '-1 month')\nGROUP BY created_date\nORDER BY created_date;"
+    },
+    {
+        "question": "What is the distribution of node instance types?",
+        "query": "SELECT instance_type, COUNT(*) AS node_count\nFROM nodedata\nGROUP BY instance_type;"
+    },
+    {
+        "question": "List all clusters with more than 5 nodes.",
+        "query": "SELECT cluster_name\nFROM nodedata\nGROUP BY cluster_name\nHAVING COUNT(node_id) > 5;"
+    },
+    {
+        "question": "Which 5 clusters have the highest number of running pods?",
+        "query": "SELECT \n    cluster_name, \n    COUNT(*) AS running_pods_count\nFROM \n    poddata\nWHERE \n    state = 'running'\nGROUP BY \n    cluster_name\nORDER BY \n    running_pods_count DESC LIMIT 5;"
+    },
+    {
+        "question": "Identify cluster with the most GPU resources.",
+        "query": "WITH ClusterGpuCounts AS (\n    SELECT \n        cluster_name,\n        SUM(gpu_count) AS total_gpu_count\n    FROM \n        poddata\n    GROUP BY \n        cluster_name\n),\nRankedClusters AS (\n    SELECT \n        cluster_name,\n        total_gpu_count,\n        RANK() OVER (ORDER BY total_gpu_count DESC) AS gpu_rank\n    FROM \n        ClusterGpuCounts\n)\nSELECT \n    cluster_name\nFROM \n    RankedClusters\nWHERE \n    gpu_rank = 1;"
+    },
+    {
+        "question": "What is the average GPU utilization per cluster?",
+        "query": "SELECT AVG(dcgm_fi_dev_gpu_util) AS avg_cpu_utilization, cluster_name\nFROM metrics\nGROUP BY cluster_name;"
+    },
+    {
+        "question": "How many clusters are associated with each platform?",
+        "query": "SELECT platform, COUNT(cluster_name) AS num_clusters\nFROM metrics\nGROUP BY platform;"
+    },
+    {
+        "question": "Identify 5 clusters with the highest number of terminated pods.",
+        "query": "SELECT \n    cluster_name,\n    COUNT(*) AS terminated_pods_count\nFROM \n    poddata\nWHERE \n    is_terminated = 1\nGROUP BY \n    cluster_name\nORDER BY \n    terminated_pods_count DESC LIMIT 5;"
+    },
+    {
+        "question": "How many projects are associated with each initiative?",
+        "query": "SELECT initiative_name, COUNT(DISTINCT project) AS project_count\nFROM poddata\nGROUP BY initiative_name;"
+    },
+    {
+        "question": "List projects with GPU quota exceeding 100.",
+        "query": "SELECT DISTINCT project_id\nFROM initiativedata\nWHERE gpu_quota > 100;"
+    },
+    {
+        "question": "Which initiatives have the highest CPU quota?",
+        "query": "SELECT initiative_name\nFROM initiativedata\nWHERE cpu_quota = (SELECT MAX(cpu_quota) FROM initiativedata);"
+    },
+    {
+        "question": "Identify projects that have not fetched metadata in the last month.",
+        "query": "SELECT DISTINCT project\nFROM poddata\nWHERE last_metric_received_time < DATE('now', '-1 month');"
+    },
+    {
+        "question": "What is the average memory quota per project?",
+        "query": "SELECT AVG(memory_quota_mb) AS avg_memory_quota_per_project\nFROM initiativedata\nGROUP BY project_id;"
+    },
+    {
+        "question": "List initiatives created in the last 30 days.",
+        "query": "SELECT initiative_name\nFROM initiativedata\nWHERE created_at >= DATE('now', '-30 days');"
+    },
+    {
+        "question": "Which projects have the highest number of running pods?",
+        "query": "SELECT project, COUNT(*) AS running_pods\nFROM poddata\nWHERE state = 'running'\nGROUP BY project\nORDER BY running_pods DESC;"
+    },
+    {
+        "question": "How many projects are using each node pool?",
+        "query": "SELECT nodepool_name, COUNT(DISTINCT project_id) AS project_count\nFROM initiativedata\nGROUP BY nodepool_name;"
+    },
+    {
+        "question": "List projects with the most diverse cluster associations.",
+        "query": "SELECT \n    project,\n    COUNT(DISTINCT cluster_name) AS unique_cluster_count\nFROM \n    poddata\nGROUP BY \n    project\nORDER BY \n    unique_cluster_count DESC;"
+    },
+    {
+        "question": "What are the account IDs of products categorized as 'COMPUTE-RI' and subcategorized as 'H200-RI' for April 2025?",
+        "query": "SELECT DISTINCT account_id\nFROM costs_data\nWHERE category = 'COMPUTE-RI'\nAND subcategory = 'H200-RI'\nAND date_day BETWEEN '2025-04-01' AND '2025-04-30';"
+    },
+    {
+        "question": "List total spend per account ID for the last quarter.",
+        "query": "SELECT account_id, SUM(total_spend) AS Total_Spent_Last_Quarter\nFROM costs_data\nWHERE date_day >= DATE('now', '-3 month')\nGROUP BY account_id;"
+    },
+    {
+        "question": "Which products incurred the highest costs in May 2025?",
+        "query": "SELECT product_name, SUM(total_spend) AS total_cost\nFROM costs_data\nWHERE date_day BETWEEN '2025-05-01' AND '2025-05-31'\nGROUP BY product_name\nORDER BY total_cost DESC\nLIMIT 1;"
+    },
+    {
+        "question": "Identify region with the highest total usage hours.",
+        "query": "SELECT \n    region,\n    SUM(total_usage_hours) AS total_usage_hours\nFROM \n    costs_data\nGROUP BY \n    region\nORDER BY \n    total_usage_hours DESC LIMIT 1;"
+    },
+    {
+        "question": "What is the average cost per instance type?",
+        "query": "SELECT \n    it.instance_type,\n    AVG(cd.total_spend) AS avg_cost_per_instance_type\nFROM \n    costs_data cd\nJOIN \n    instance_type_metadata it ON cd.instance_type = it.instance_type\nGROUP BY \n    it.instance_type;"
+    },
+    {
+        "question": "List accounts with spending above $10,000 in the last month.",
+        "query": "SELECT account_id, SUM(total_spend) AS total_spent_last_month\nFROM costs_data\nWHERE date_day >= DATE('now', '-1 month')\nGROUP BY account_id\nHAVING total_spent_last_month > 10000;"
+    },
+    {
+        "question": "Which 5 subcategories have the highest total spend?",
+        "query": "SELECT \n    subcategory, \n    SUM(total_spend) AS total_spend_sum\nFROM \n    costs_data\nGROUP BY \n    subcategory\nORDER BY \n    total_spend_sum DESC LIMIT 5;"
+    },
+    {
+        "question": "Identify products with zero usage hours but incurred costs.",
+        "query": "SELECT product_name\nFROM costs_data\nWHERE total_usage_hours = 0 AND total_spend > 0;"
+    },
+    {
+        "question": "What is the distribution of costs across different environments?",
+        "query": "SELECT env, SUM(total_spend) AS total_cost\nFROM costs_data\nGROUP BY env;"
+    },
+    {
+        "question": "List the top 5 most expensive instance types.",
+        "query": "SELECT \n    instance_type,\n    SUM(total_spend) AS total_spend\nFROM \n    costs_data\nGROUP BY \n    instance_type\nORDER BY \n    total_spend DESC\nLIMIT 5;"
+    },
+    {
+        "question": "What is the distribution of instance types?",
+        "query": "SELECT instance_type, COUNT(*) AS instance_count\nFROM instance_type_metadata\nGROUP BY instance_type;"
+    },
+    {
+        "question": "List instance types with more than 8 GPUs.",
+        "query": "SELECT instance_type\nFROM instance_type_metadata\nWHERE gpu_count > 8;"
+    },
+    {
+        "question": "Identify instance types with CPU count exceeding 64.",
+        "query": "SELECT instance_type\nFROM instance_type_metadata\nWHERE cpu_count > 64;"
+    },
+    {
+        "question": "Which instance types have memory greater than 256GB?",
+        "query": "SELECT instance_type\nFROM instance_type_metadata\nWHERE memory_mb > 256 * 1024 * 1024;"
+    },
+    {
+        "question": "What is the average GPU count across all instance types?",
+        "query": "SELECT AVG(gpu_count) AS avg_gpu_count\nFROM instance_type_metadata;"
+    },
+    {
+        "question": "List instance types used in the 'runai' platform.",
+        "query": "SELECT DISTINCT instance_type\nFROM poddata\nWHERE platform = 'runai'\nUNION\nSELECT DISTINCT instance_type\nFROM nodedata\nWHERE platform = 'runai';"
+    },
+    {
+        "question": "Identify instance types with the highest CPU to GPU ratio.",
+        "query": "SELECT \n    instance_type,\n    cpu_count / gpu_count AS cpu_to_gpu_ratio\nFROM \n    instance_type_metadata\nWHERE \n    gpu_count > 0\nORDER BY \n    cpu_to_gpu_ratio DESC;"
+    },
+    {
+        "question": "What is the most commonly used instance type?",
+        "query": "SELECT instance_type\nFROM nodedata\nGROUP BY instance_type\nORDER BY COUNT(*) DESC\nLIMIT 1;"
+    },
+    {
+        "question": "Which 5 instance types are associated with the highest costs?",
+        "query": "SELECT \n    it.instance_type,\n    SUM(cd.total_spend) AS total_cost\nFROM \n    costs_data cd\nJOIN \n    instance_type_metadata it ON cd.env = it.instance_type\nGROUP BY \n    it.instance_type\nORDER BY \n    total_cost DESC LIMIT 5;"
+    },
+    {
+        "question": "Which pods have the highest GPU utilization?",
+        "query": "SELECT \n    pod_id,\n    MAX(dcgm_fi_dev_gpu_util) AS max_gpu_utilization\nFROM \n    metrics\nGROUP BY \n    pod_id\nORDER BY \n    max_gpu_utilization DESC;"
+    },
+    {
+        "question": "Identify pods with thermal violations.",
+        "query": "SELECT DISTINCT pod_id\nFROM metrics\nWHERE dcgm_fi_dev_thermal_violation > 0;"
+    },
+    {
+        "question": "List pods with the highest DRAM activity.",
+        "query": "SELECT \n    p.pod_id,\n    m.dcgm_fi_prof_dram_active\nFROM \n    metrics m\nJOIN \n    poddata p ON m.pod_id = p.pod_id\nORDER BY \n    m.dcgm_fi_prof_dram_active DESC;"
+    },
+    {
+        "question": "Which pods have the highest graphics engine activity.",
+        "query": "SELECT \n    pod_id, \n    MAX(dcgm_fi_prof_gr_engine_active) AS max_graphics_engine_activity\nFROM \n    metrics\nGROUP BY \n    pod_id;"
+    },
+    {
+        "question": "Identify pods with the highest tensor core activity.",
+        "query": "SELECT \n    pod_id,\n    pod_name,\n    dcgm_fi_prof_pipe_tensor_active AS max_tensor_core_activity\nFROM \n    metrics\nORDER BY \n    dcgm_fi_prof_pipe_tensor_active DESC;"
+    },
+    {
+        "question": "What is the average GPU temperature across all pods?",
+        "query": "SELECT AVG(dcgm_fi_dev_gpu_temp) AS Average_GPU_Temperature\nFROM metrics;"
+    }
+]
